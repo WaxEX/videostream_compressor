@@ -1,0 +1,2 @@
+# videostream_compressor
+ストリームをへらしたいときにつかう

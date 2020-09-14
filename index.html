@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>webcam</title>
+
+</head>
+
+<body>
+  streamをvideoに映したやつ → を毎フレcanvasに縮小書き込みしたしたやつ → を5フレでstreamに変換してvideoタグに流し込んだやつ
+  <br>
+
+  <video id="video" autoplay style="width: 200px; height: 200px;"></video>
+  <canvas id="canvas"></canvas>
+  <video id="new_video" autoplay style="width: 200px; height: 200px;"></video>
+  <br>
+
+  <button onclick="hideVideo()">hide</button>
+
+</body>
+
+<script type="text/javascript">
+
+  startVideo();
+
+
+
+  async function startVideo() {
+
+    const stream = await navigator.mediaDevices.getUserMedia({video: true}).catch(console.error);
+    const new_steam = startReduse(stream);
+    document.querySelector("#new_video").srcObject = new_steam;
+  }
+
+
+  // streamをvideoに映したやつを毎フレcanvasに縮小書き込みしたしたやつをstreamにしたやつを返すやつ
+  function startReduse(stream){
+ 
+    // 先ずvideoにする
+    let video = document.querySelector("#video");
+    video.srcObject = stream;
+
+    const canvas = document.querySelector("#canvas");
+    const context = canvas.getContext('2d');
+    canvas.width  = 50;
+    canvas.height = 50;
+
+    _canvasUpdate();
+    // TODO アス比をアレしてイイ感じにする 後フレームレート下げたい
+    function _canvasUpdate() {
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      requestAnimationFrame(_canvasUpdate);
+    };
+
+    // フレ-ムレート指定できる
+    return canvas.captureStream(5);
+  }
+
+  function hideVideo() {
+    document.querySelector("#video").style.display = 'none';
+    document.querySelector("#canvas").style.display = 'none';
+  }
+
+</script>
+
+</html>

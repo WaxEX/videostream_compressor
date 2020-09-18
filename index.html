@@ -16,8 +16,6 @@
   <video id="new_video" autoplay style="width: 200px; height: 200px;"></video>
   <br>
 
-  <button onclick="hideVideo()">hide</button>
-
 </body>
 
 <script type="text/javascript">
@@ -35,32 +33,45 @@
 
 
   // streamをvideoに映したやつを毎フレcanvasに縮小書き込みしたしたやつをstreamにしたやつを返すやつ
-  function startReduse(stream){
- 
-    // 先ずvideoにする
-    let video = document.querySelector("#video");
-    video.srcObject = stream;
+  async function StreamCopmpress(stream, size=100, frameRate=10){
 
-    const canvas = document.querySelector("#canvas");
+    // ストリームを受け取るvideo
+    const video = document.createElement("video");
+    video.width  = size;
+    video.height = size;
+    video.hidden = true;
+    video.muted =true;
+
+    // 縮小表示するcanvas
+    const canvas = document.createElement("canvas");
+    canvas.width  = size;
+    canvas.height = size;
+    canvas.hidden = true;
     const context = canvas.getContext('2d');
-    canvas.width  = 50;
-    canvas.height = 50;
 
+    // bodyにこっそり追加して
+    document.body.appendChild(video);
+    document.body.appendChild(canvas);
+
+    // 再生開始
+    video.srcObject = stream;
+    await video.play();
     _canvasUpdate();
-    // TODO アス比をアレしてイイ感じにする 後フレームレート下げたい
+
+    // TODO アス比を保持して中央でクリッピング 後フレームレート下げたい
     function _canvasUpdate() {
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
       requestAnimationFrame(_canvasUpdate);
     };
 
-    // フレ-ムレート指定できる
-    return canvas.captureStream(5);
-  }
+    // canvasから指定のフレームレートのstreamを返してやる
+    const new_stream = canvas.captureStream(frameRate);
 
-  function hideVideo() {
-    document.querySelector("#video").style.display = 'none';
-    document.querySelector("#canvas").style.display = 'none';
-  }
+    // AudioTrackがないので、前のやつから引き継ぎ
+    new_stream.addTrack(stream.getAudioTracks()[0]);
+
+    return new_stream;
+}
 
 </script>
 
